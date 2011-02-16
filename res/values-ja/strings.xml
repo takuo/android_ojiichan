@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">おじいちゃん携帯</string>
+    <string name="login">ログイン</string>
+    <string name="logout">ログアウト</string>
+    <string name="twitter_login">Twitter ログイン</string>
+    <string name="dialog_message">oAuth を準備中...</string>
+    <string name="dialog_title">Twitter ログイン</string>
+    <string name="logout_message">ログアウトしました...</string>
+    <string name="action_batari">バタリ</string>
+    <string name="action_gabari">ガバリ</string>
+    <string name="action_furoha">フロハ</string>
+    <string name="action_furoa">フロア</string>
+    <string name="sending_title">ステータス更新</string>
+    <string name="sending_message">%s でステータス更新</string>
+    <string name="success">成功</string>
+    <string name="fail">失敗</string>
+    <string name="require_login">まずTwitterにログイン!!</string>
+    <string name="cancel">キャンセル</string>
+</resources>

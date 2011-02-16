@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Ojiichan k-tai</string>
+    <string name="login">Login</string>
+    <string name="logout">Logout</string>
+    <string name="twitter_login">Twitter Login</string>
+    <string name="dialog_message">Preparing oAuth...</string>
+    <string name="dialog_title">Twitter Login</string>
+    <string name="logout_message">Logout...</string>
+    <string name="action_batari">batari</string>
+    <string name="action_gabari">gabari</string>
+    <string name="action_furoha">furoha</string>
+    <string name="action_furoa">furoa</string>
+    <string name="sending_title">Updating status</string>
+    <string name="sending_message">Updating stauts with : %s</string>
+    <string name="success">Success</string>
+    <string name="fail">Failed</string>
+    <string name="require_login">You must be logged in Twitter!!</string>
+    <string name="cancel">Cancel</string>
+</resources>
