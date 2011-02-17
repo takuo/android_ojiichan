@@ -12,9 +12,16 @@
             </intent-filter>
         </activity>
         <activity android:name=".TwitterLogin"
+                  android:launchMode="singleTop"
                   android:label="@string/twitter_login">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="ojiichan" android:host="oauthcallback" />
             </intent-filter>
         </activity>
     </application>
