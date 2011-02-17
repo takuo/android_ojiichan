@@ -4,7 +4,6 @@ import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 import twitter4j.http.AccessToken;
-import twitter4j.http.RequestToken;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -29,12 +28,11 @@ public class Main extends Activity implements
     DialogInterface.OnClickListener, DialogInterface.OnCancelListener {
 
     static final private int REQUEST_CODE = 0;
-    static final private String PREF_ACCESS_TOKEN = "access_token";
-    static final private String PREF_ACCESS_TOKEN_SECRET = "access_token_secret";
-    static final private String CONSUMER_KEY = "rviVIoBF91o4eaJC5jssA";
-    static final private String CONSUMER_SEC = "fBm4tbRozD9r6TZWH1M4MDgQsbSxjmr5AchOWyULGks";
+    static final public String PREF_ACCESS_TOKEN = "access_token";
+    static final public String PREF_ACCESS_TOKEN_SECRET = "access_token_secret";
+    static final public String CONSUMER_KEY = "rviVIoBF91o4eaJC5jssA";
+    static final public String CONSUMER_SEC = "fBm4tbRozD9r6TZWH1M4MDgQsbSxjmr5AchOWyULGks";
     static final private String LOG_TAG = "OJIICHAN";
-    static final public String CALLBACK_URL = "http://ojiichan.localnet/";
     static private int mActionType = 0; // { 1: gabari, 2: batari, 3: furoha, 4: furoa }
     static private final int ACTION_NONE   = 0;
     static private final int ACTION_GABARI = 1;
@@ -43,7 +41,6 @@ public class Main extends Activity implements
     static private final int ACTION_FUROA  = 4;
     static private boolean mAuthed = false;
     static private Twitter mTwitter;
-    static private RequestToken mRequestToken;
     static private AccessToken mAccessToken;
     static private ProgressDialog mProgressDialog;
     private Context mContext;
@@ -114,8 +111,8 @@ public class Main extends Activity implements
             Toast.makeText(mContext, R.string.logout_message, Toast.LENGTH_LONG).show();
             if (mItem != null) mItem.setTitle(R.string.login);
         } else {
-            AsyncRequest req = new AsyncRequest();
-            req.execute ();
+            Intent intent = new Intent(Main.this, TwitterLogin.class);
+            Main.this.startActivityForResult(intent, REQUEST_CODE);
         }
         return ret;
     }
@@ -177,70 +174,9 @@ public class Main extends Activity implements
         }
     }
 
-    class AsyncRequest extends AsyncTask<Void, String, Void> {
-        public AsyncRequest() {
-            mProgressDialog = new ProgressDialog(Main.this);
-            mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        }
-
-        protected void onProgressUpdate(String... progress) {
-            mProgressDialog.setMessage(progress[0]);
-        }
-
-        protected void onPreExecute() {
-            super.onPreExecute();
-            mProgressDialog.setIndeterminate(true);
-            mProgressDialog.setTitle(R.string.dialog_title);
-            mProgressDialog.show();
-        }
-
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
-            if(mProgressDialog != null &&
-                mProgressDialog.isShowing()) {
-                mProgressDialog.dismiss();
-                mProgressDialog = null;
-            }
-            Intent intent = new Intent(Main.this, TwitterLogin.class);
-            intent.putExtra("auth_url", mRequestToken.getAuthorizationURL());
-            Main.this.startActivityForResult(intent, REQUEST_CODE);
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            publishProgress(getString(R.string.dialog_message));
-            TwitterFactory factory = new TwitterFactory();
-            mTwitter = factory.getInstance();
-            mTwitter.setOAuthConsumer(CONSUMER_KEY, CONSUMER_SEC);
-            try {
-                mRequestToken = mTwitter.getOAuthRequestToken(CALLBACK_URL);
-            } catch (TwitterException e) {
-                Log.d(LOG_TAG, "Cannot get request token: " + e.getMessage());
-            }
-            return null;
-        }
-    }
-
     @Override
     protected void onActivityResult(int requestCode, int resutCode, Intent data) {
-        if (requestCode != REQUEST_CODE) return;
-        try {
-            mAccessToken =
-                mTwitter.getOAuthAccessToken(mRequestToken, data.getExtras().getString("oauth_verifier"));
-            SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
-            SharedPreferences.Editor editor = pref.edit();
-            editor.putString(PREF_ACCESS_TOKEN, mAccessToken.getToken());
-            editor.putString(PREF_ACCESS_TOKEN_SECRET, mAccessToken.getTokenSecret());
-            editor.commit();
-            mAuthed = true;
-            if (mItem != null) mItem.setTitle(R.string.logout);
-        } catch (TwitterException e) {
-            Log.d(LOG_TAG, "Cannot get AccessToken: " + e.getMessage());
-            mAuthed = false;
-            if (mItem != null) mItem.setTitle(R.string.login);
-        } catch (Exception e) {
-            Log.d(LOG_TAG, "Cannot get AccessToken: " + e.getMessage());
-        }
+        if(requestCode == REQUEST_CODE) isAuthed();
     }
 
     private void isAuthed() {
@@ -258,6 +194,8 @@ public class Main extends Activity implements
             mTwitter.setOAuthAccessToken(mAccessToken);
             mAuthed = true;
             if (mItem != null) mItem.setTitle(R.string.logout);
+        } else {
+            if (mItem != null) mItem.setTitle(R.string.login);
         }
     }
 
@@ -301,8 +239,8 @@ public class Main extends Activity implements
     @Override
     public void onClick(DialogInterface dialog, int which) {
         if (which == DialogInterface.BUTTON_POSITIVE) {
-            AsyncRequest req = new AsyncRequest();
-            req.execute ();
+            Intent intent = new Intent(Main.this, TwitterLogin.class);
+            Main.this.startActivityForResult(intent, REQUEST_CODE);
         }
     }
 }
