@@ -84,6 +84,10 @@ public class TwitterLogin extends Activity {
         mIntent = getIntent();
         setContentView(R.layout.login);
         mWebView = (WebView)findViewById(R.id.webview);
+        mWebView.getSettings().setAppCacheEnabled(false);
+        mWebView.getSettings().setJavaScriptEnabled(true);
+        mWebView.clearCache(true);
+        mWebView.clearFormData();
         AsyncRequest req = new AsyncRequest();
         req.execute();
     }
