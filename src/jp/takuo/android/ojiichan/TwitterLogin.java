@@ -99,10 +99,13 @@ public class TwitterLogin extends Activity {
             String verifier = uri.getQueryParameter("oauth_verifier");
             try {
                 mAccessToken = mTwitter.getOAuthAccessToken(mRequestToken, verifier);
+                mTwitter.setOAuthAccessToken(mAccessToken);
+                String name = mTwitter.getScreenName();
                 SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
                 SharedPreferences.Editor editor = pref.edit();
                 editor.putString(Main.PREF_ACCESS_TOKEN, mAccessToken.getToken());
                 editor.putString(Main.PREF_ACCESS_TOKEN_SECRET, mAccessToken.getTokenSecret());
+                editor.putString(Main.PREF_ACCOUNT, name);
                 editor.commit();
                 Toast.makeText(mContext, R.string.success, Toast.LENGTH_LONG).show();
             } catch (TwitterException e) {

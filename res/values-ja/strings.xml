@@ -17,5 +17,6 @@
     <string name="fail">失敗</string>
     <string name="require_login">まずTwitterにログイン!!</string>
     <string name="cancel">キャンセル</string>
-<string name="avoid_limit">API制限を回避するためステータステキストに時刻情報を付加します</string>
+    <string name="avoid_limit">API制限を回避するためステータステキストに時刻情報を付加します</string>
+    <string name="not_loggedin">ログインしてません</string>
 </resources>

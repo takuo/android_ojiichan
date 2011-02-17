@@ -28,6 +28,7 @@ public class Main extends Activity implements
     DialogInterface.OnClickListener, DialogInterface.OnCancelListener {
 
     static final private int REQUEST_CODE = 0;
+    static final public String PREF_ACCOUNT = "account_name";
     static final public String PREF_ACCESS_TOKEN = "access_token";
     static final public String PREF_ACCESS_TOKEN_SECRET = "access_token_secret";
     static final public String CONSUMER_KEY = "rviVIoBF91o4eaJC5jssA";
@@ -43,6 +44,7 @@ public class Main extends Activity implements
     static private Twitter mTwitter;
     static private AccessToken mAccessToken;
     static private ProgressDialog mProgressDialog;
+    private String mScreenName;
     private Context mContext;
     private MenuItem mItem;
 
@@ -110,6 +112,8 @@ public class Main extends Activity implements
             mAuthed = false;
             Toast.makeText(mContext, R.string.logout_message, Toast.LENGTH_LONG).show();
             if (mItem != null) mItem.setTitle(R.string.login);
+            this.setTitle(String.format("%s - %s", getString(R.string.app_name),
+                    getString(R.string.not_loggedin)));
         } else {
             Intent intent = new Intent(Main.this, TwitterLogin.class);
             Main.this.startActivityForResult(intent, REQUEST_CODE);
@@ -180,12 +184,16 @@ public class Main extends Activity implements
     }
 
     private void isAuthed() {
+        mScreenName = PreferenceManager
+        .getDefaultSharedPreferences(mContext)
+        .getString(PREF_ACCOUNT, null);
         String token = PreferenceManager
         .getDefaultSharedPreferences(mContext)
         .getString(PREF_ACCESS_TOKEN, null);
         String secret = PreferenceManager
         .getDefaultSharedPreferences(mContext)
         .getString(PREF_ACCESS_TOKEN_SECRET, null);
+
         if (!TextUtils.isEmpty(token) && !TextUtils.isEmpty(secret)) {
             TwitterFactory factory = new TwitterFactory();
             mAccessToken = new AccessToken(token, secret);
@@ -193,9 +201,22 @@ public class Main extends Activity implements
             mTwitter.setOAuthConsumer(CONSUMER_KEY, CONSUMER_SEC);
             mTwitter.setOAuthAccessToken(mAccessToken);
             mAuthed = true;
+            if (mScreenName == null) {
+                try {
+                    mScreenName = mTwitter.getScreenName();
+                    SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
+                    SharedPreferences.Editor editor = pref.edit();
+                    editor.putString(PREF_ACCOUNT, mScreenName);
+                    editor.commit();
+                } catch (Exception e) {
+                    Log.d(LOG_TAG, "Error: " + e.getMessage());
+                }
+            }
+            this.setTitle(String.format("%s - %s", getString(R.string.app_name), mScreenName));
             if (mItem != null) mItem.setTitle(R.string.logout);
         } else {
             if (mItem != null) mItem.setTitle(R.string.login);
+            this.setTitle(String.format("%s - %s", getString(R.string.app_name), getString(R.string.not_loggedin)));
         }
     }
 
