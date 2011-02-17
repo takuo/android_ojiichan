@@ -69,7 +69,7 @@ public class Main extends Activity implements
 
                 x = event.getX() / xscale;
                 y = event.getY() / yscale;
-//                Log.d(LOG_TAG, "x: " + x + ", y:" + y);
+                // Log.d(LOG_TAG, "x: " + x + ", y:" + y);
                 if (x >= 90 && x <= 210 &&
                         y >= 300 && y <= 425) curAction = ACTION_BATARI;
                 else if (x >= 110 && x <= 200 &&
@@ -84,15 +84,15 @@ public class Main extends Activity implements
                 } else if (event.getAction() == MotionEvent.ACTION_UP ) {
                     Log.d(LOG_TAG, "UP ACTION: " + curAction);
                     if (mActionType == curAction) doAction(mActionType);
-                  }
+                }
                 return true;
             }
-            });
+        });
         isAuthed();
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        Log.d(LOG_TAG, "onCreateOptionsMenu");
         boolean ret = super.onCreateOptionsMenu(menu);
         if (mAuthed)
             mItem = menu.add(0, Menu.FIRST, Menu.NONE, R.string.logout);
@@ -100,7 +100,7 @@ public class Main extends Activity implements
             mItem = menu.add(0, Menu.FIRST, Menu.NONE, R.string.login);
         return ret;
     }
-    
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         boolean ret = super.onOptionsItemSelected(item);
@@ -122,20 +122,23 @@ public class Main extends Activity implements
 
     class AsyncUpdate extends AsyncTask<String, String, Void> {
         String mText;
+
         public AsyncUpdate() {
             mProgressDialog = new ProgressDialog(Main.this);
             mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-       }
+        }
+
         protected void onProgressUpdate(String... progress) {
             mProgressDialog.setMessage(progress[0]);
         }
+
         protected void onPreExecute() {
             super.onPreExecute();
             mProgressDialog.setIndeterminate(true);
             mProgressDialog.setTitle(R.string.sending_title);
             mProgressDialog.show();
         }
-        
+
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
             if(mProgressDialog != null &&
@@ -149,15 +152,26 @@ public class Main extends Activity implements
         @Override
         protected Void doInBackground(String... params) {
             String text = params[0];
+            int retry = 0;
             publishProgress(String.format(getString(R.string.sending_message), text));
-            try {
-                twitter4j.Status stat = mTwitter.updateStatus(text);
-                if (stat.getText().equals(text))
+            while(retry <= 5) {
+                try {
+                    mTwitter.updateStatus(text);
                     mText = getString(R.string.success);
-                else
-                    mText = getString(R.string.fail);
-            } catch (TwitterException e) {
-                mText = e.getMessage();
+                    break;
+                } catch (TwitterException e) {
+                    if (e.getStatusCode() == 403) {
+                        text = String.format("%s %d", params[0], System.currentTimeMillis());
+                        retry ++;
+                        if (retry > 5) {
+                            mText = e.getMessage();
+                        }
+                        publishProgress(getString(R.string.avoid_limit));
+                    } else {
+                        mText = e.getMessage();
+                        break;
+                    }
+                }
             }
             return null;
         }
@@ -167,17 +181,19 @@ public class Main extends Activity implements
         public AsyncRequest() {
             mProgressDialog = new ProgressDialog(Main.this);
             mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-       }
+        }
+
         protected void onProgressUpdate(String... progress) {
             mProgressDialog.setMessage(progress[0]);
         }
+
         protected void onPreExecute() {
             super.onPreExecute();
             mProgressDialog.setIndeterminate(true);
             mProgressDialog.setTitle(R.string.dialog_title);
             mProgressDialog.show();
         }
-        
+
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
             if(mProgressDialog != null &&
@@ -188,7 +204,7 @@ public class Main extends Activity implements
             Intent intent = new Intent(Main.this, TwitterLogin.class);
             intent.putExtra("auth_url", mRequestToken.getAuthorizationURL());
             Main.this.startActivityForResult(intent, REQUEST_CODE);
-            }
+        }
 
         @Override
         protected Void doInBackground(Void... params) {
@@ -204,8 +220,10 @@ public class Main extends Activity implements
             return null;
         }
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resutCode, Intent data) {
+        if (requestCode != REQUEST_CODE) return;
         try {
             mAccessToken =
                 mTwitter.getOAuthAccessToken(mRequestToken, data.getExtras().getString("oauth_verifier"));
@@ -242,7 +260,7 @@ public class Main extends Activity implements
             if (mItem != null) mItem.setTitle(R.string.logout);
         }
     }
-    
+
     private void doAction(int action) {
         if (!mAuthed) {
             AlertDialog.Builder adb = new AlertDialog.Builder(this);
@@ -255,26 +273,27 @@ public class Main extends Activity implements
         }
 
         String text;
-         switch (action) {
-         case ACTION_GABARI:
-             text = getString(R.string.action_gabari);
-             break;
-         case ACTION_BATARI:
-             text = getString(R.string.action_batari);
-             break;
-         case ACTION_FUROHA:
-             text = getString(R.string.action_furoha);
-             break;
-         case ACTION_FUROA:
-             text = getString(R.string.action_furoa);
-             break;
-         default:
-             return;
-         }
-         Log.d(LOG_TAG, "TEXT: " + text);
-         AsyncUpdate au = new AsyncUpdate();
-         au.execute(text);
+        switch (action) {
+        case ACTION_GABARI:
+            text = getString(R.string.action_gabari);
+            break;
+        case ACTION_BATARI:
+            text = getString(R.string.action_batari);
+            break;
+        case ACTION_FUROHA:
+            text = getString(R.string.action_furoha);
+            break;
+        case ACTION_FUROA:
+            text = getString(R.string.action_furoa);
+            break;
+        default:
+            return;
+        }
+        Log.d(LOG_TAG, "TEXT: " + text);
+        AsyncUpdate au = new AsyncUpdate();
+        au.execute(text);
     }
+
     @Override
     public void onCancel(DialogInterface dialog) {
     }

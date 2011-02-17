@@ -17,4 +17,5 @@
     <string name="fail">Failed</string>
     <string name="require_login">You must be logged in Twitter!!</string>
     <string name="cancel">Cancel</string>
+<string name="avoid_limit">Adding time information into status text to avoid API limitation.</string>
 </resources>
