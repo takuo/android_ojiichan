@@ -27,24 +27,24 @@ import android.widget.Toast;
 public class Main extends Activity implements
     DialogInterface.OnClickListener, DialogInterface.OnCancelListener {
 
-    static final private int REQUEST_CODE = 0;
-    static final public String PREF_ACCOUNT = "account_name";
-    static final public String PREF_ACCESS_TOKEN = "access_token";
-    static final public String PREF_ACCESS_TOKEN_SECRET = "access_token_secret";
-    static final public String CONSUMER_KEY = "rviVIoBF91o4eaJC5jssA";
-    static final public String CONSUMER_SEC = "fBm4tbRozD9r6TZWH1M4MDgQsbSxjmr5AchOWyULGks";
-    static final private String LOG_TAG = "OJIICHAN";
-    static private int mActionType = 0; // { 1: gabari, 2: batari, 3: furoha, 4: furoa }
-    static private final int ACTION_NONE   = 0;
-    static private final int ACTION_GABARI = 1;
-    static private final int ACTION_BATARI = 2;
-    static private final int ACTION_FUROHA = 3;
-    static private final int ACTION_FUROA  = 4;
-    static private boolean mAuthed = false;
-    static private Twitter mTwitter;
-    static private AccessToken mAccessToken;
-    static private ProgressDialog mProgressDialog;
-    private String mScreenName;
+    private static final int REQUEST_CODE = 0;
+    public static final String PREF_ACCOUNT = "account_name";
+    public static final String PREF_ACCESS_TOKEN = "access_token";
+    public static final String PREF_ACCESS_TOKEN_SECRET = "access_token_secret";
+    public static final String CONSUMER_KEY = "rviVIoBF91o4eaJC5jssA";
+    public static final String CONSUMER_SEC = "fBm4tbRozD9r6TZWH1M4MDgQsbSxjmr5AchOWyULGks";
+    private static final String LOG_TAG = "OJIICHAN";
+    private static int mActionType = 0; // { 1: gabari, 2: batari, 3: furoha, 4: furoa }
+    private static final int ACTION_NONE   = 0;
+    private static final int ACTION_GABARI = 1;
+    private static final int ACTION_BATARI = 2;
+    private static final int ACTION_FUROHA = 3;
+    private static final int ACTION_FUROA  = 4;
+    private static boolean mAuthed = false;
+    public static Twitter mTwitter;
+    public static AccessToken mAccessToken;
+    public static String mScreenName;
+    private ProgressDialog mProgressDialog;
     private Context mContext;
     private MenuItem mItem;
 
@@ -87,6 +87,8 @@ public class Main extends Activity implements
                 return true;
             }
         });
+        mTwitter = new TwitterFactory().getInstance();
+        mTwitter.setOAuthConsumer(CONSUMER_KEY, CONSUMER_SEC);
         isAuthed();
     }
 
@@ -122,7 +124,7 @@ public class Main extends Activity implements
     }
 
     class AsyncUpdate extends AsyncTask<String, String, Void> {
-        String mText;
+        private String mText;
 
         public AsyncUpdate() {
             mProgressDialog = new ProgressDialog(Main.this);
@@ -195,10 +197,7 @@ public class Main extends Activity implements
         .getString(PREF_ACCESS_TOKEN_SECRET, null);
 
         if (!TextUtils.isEmpty(token) && !TextUtils.isEmpty(secret)) {
-            TwitterFactory factory = new TwitterFactory();
             mAccessToken = new AccessToken(token, secret);
-            mTwitter = factory.getInstance();
-            mTwitter.setOAuthConsumer(CONSUMER_KEY, CONSUMER_SEC);
             mTwitter.setOAuthAccessToken(mAccessToken);
             mAuthed = true;
             if (mScreenName == null) {
@@ -248,9 +247,7 @@ public class Main extends Activity implements
         default:
             return;
         }
-        Log.d(LOG_TAG, "TEXT: " + text);
-        AsyncUpdate au = new AsyncUpdate();
-        au.execute(text);
+        new AsyncUpdate().execute(text);
     }
 
     @Override

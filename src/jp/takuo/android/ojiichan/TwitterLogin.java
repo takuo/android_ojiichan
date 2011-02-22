@@ -2,7 +2,6 @@ package jp.takuo.android.ojiichan;
 
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
-import twitter4j.TwitterFactory;
 import twitter4j.http.AccessToken;
 import twitter4j.http.RequestToken;
 import android.app.Activity;
@@ -19,12 +18,12 @@ import android.webkit.WebView;
 import android.widget.Toast;
 
 public class TwitterLogin extends Activity {
-    static final public String CALLBACK_URL = "ojiichan://oauthcallback/";
-    static private final String LOG_TAG = "OjiichanLogin";
-    static private ProgressDialog mProgressDialog;
-    static private Twitter mTwitter;
-    static private RequestToken mRequestToken;
-    static private AccessToken mAccessToken;
+    private static final String CALLBACK_URL = "ojiichan://oauthcallback/";
+    private static final String LOG_TAG = "OjiichanLogin";
+    private ProgressDialog mProgressDialog;
+    private Twitter mTwitter = Main.mTwitter;
+    private RequestToken mRequestToken;
+    private AccessToken mAccessToken = Main.mAccessToken;
     private WebView mWebView;
     private Context mContext;
     private Intent mIntent;
@@ -65,9 +64,6 @@ public class TwitterLogin extends Activity {
         @Override
         protected Void doInBackground(Void... params) {
             publishProgress(getString(R.string.dialog_message));
-            TwitterFactory factory = new TwitterFactory();
-            mTwitter = factory.getInstance();
-            mTwitter.setOAuthConsumer(Main.CONSUMER_KEY, Main.CONSUMER_SEC);
             try {
                 mRequestToken = mTwitter.getOAuthRequestToken(CALLBACK_URL);
             } catch (TwitterException e) {
