@@ -170,6 +170,9 @@ public class Main extends Activity implements
                             mText = e.getMessage();
                         }
                         publishProgress(getString(R.string.avoid_limit));
+                    } else if (e.getStatusCode() == 401) {
+                        mText = getString(R.string.oauth_fail);
+                        break;
                     } else {
                         mText = e.getMessage();
                         break;

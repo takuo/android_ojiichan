@@ -4,7 +4,7 @@
     <string name="login">ログイン</string>
     <string name="logout">ログアウト</string>
     <string name="twitter_login">Twitter ログイン</string>
-    <string name="dialog_message">oAuth を準備中...</string>
+    <string name="dialog_message">OAuth を準備中...</string>
     <string name="dialog_title">Twitter ログイン</string>
     <string name="logout_message">ログアウトしました...</string>
     <string name="action_batari">バタリ</string>
@@ -19,4 +19,5 @@
     <string name="cancel">キャンセル</string>
     <string name="avoid_limit">API制限を回避するためステータステキストに時刻情報を付加します</string>
     <string name="not_loggedin">ログインしてません</string>
+    <string name="oauth_fail">OAuth 認証に失敗しました</string>
 </resources>
