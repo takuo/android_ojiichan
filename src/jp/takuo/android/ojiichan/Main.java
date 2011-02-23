@@ -111,6 +111,9 @@ public class Main extends Activity implements
             editor.putString(PREF_ACCESS_TOKEN, "");
             editor.putString(PREF_ACCESS_TOKEN_SECRET, "");
             editor.commit();
+            mTwitter.shutdown();
+            mTwitter = new TwitterFactory().getInstance();
+            mTwitter.setOAuthConsumer(CONSUMER_KEY, CONSUMER_SEC);
             mAuthed = false;
             Toast.makeText(mContext, R.string.logout_message, Toast.LENGTH_LONG).show();
             if (mItem != null) mItem.setTitle(R.string.login);
