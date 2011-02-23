@@ -14,6 +14,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.Window;
+import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.widget.Toast;
 
@@ -78,12 +80,20 @@ public class TwitterLogin extends Activity {
         super.onCreate(savedInstanceState);
         mContext = getApplicationContext();
         mIntent = getIntent();
+        getWindow().requestFeature(Window.FEATURE_PROGRESS);
         setContentView(R.layout.login);
         mWebView = (WebView)findViewById(R.id.webview);
         mWebView.getSettings().setAppCacheEnabled(false);
         mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.clearCache(true);
         mWebView.clearFormData();
+        getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_VISIBILITY_ON);
+        final Activity activity = this;
+        mWebView.setWebChromeClient(new WebChromeClient() {
+            public void onProgressChanged(WebView w, int p) {
+                activity.setProgress(p * 100);
+            }
+        });
         AsyncRequest req = new AsyncRequest();
         req.execute();
     }
