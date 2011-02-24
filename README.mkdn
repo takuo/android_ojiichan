@@ -1,0 +1,9 @@
+おじいちゃん携帯 for Android
+============================
+
+おじいちゃん携帯オリジナルについては koyachi さんによるもので、
+こちらを参照してください。  
+https://github.com/koyachi/app-ojiichankeitai2
+
+
+当方のAndroid版はJava/twitter4jで実装してあります。
