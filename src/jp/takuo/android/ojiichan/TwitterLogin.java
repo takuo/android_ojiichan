@@ -81,6 +81,7 @@ public class TwitterLogin extends Activity {
         mContext = getApplicationContext();
         mIntent = getIntent();
         getWindow().requestFeature(Window.FEATURE_PROGRESS);
+        getWindow().requestFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.login);
         mWebView = (WebView)findViewById(R.id.webview);
         mWebView.getSettings().setAppCacheEnabled(false);
