@@ -1,3 +1,7 @@
+2011-02-26  Takuo Kitame <kitame@gmail.com>
+
+	* minor fix for OAuth process.
+
 2011-02-18  Takuo Kitame <kitame@gmail.com>
 
 	* avoid API limitation due to duplicate post.
