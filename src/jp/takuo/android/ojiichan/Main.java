@@ -187,8 +187,13 @@ public class Main extends Activity implements
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resutCode, Intent data) {
-        if(requestCode == REQUEST_CODE) isAuthed();
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode == REQUEST_CODE && resultCode == RESULT_OK) isAuthed();
+        else if (resultCode == RESULT_CANCELED) {
+            mTwitter.shutdown();
+            mTwitter = new TwitterFactory().getInstance();
+            mTwitter.setOAuthConsumer(CONSUMER_KEY, CONSUMER_SEC);
+        }
     }
 
     private void isAuthed() {
