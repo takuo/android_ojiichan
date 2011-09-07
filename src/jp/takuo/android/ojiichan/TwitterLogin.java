@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.Window;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Toast;
 
 public class TwitterLogin extends Activity {
@@ -84,6 +85,18 @@ public class TwitterLogin extends Activity {
         getWindow().requestFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.login);
         mWebView = (WebView)findViewById(R.id.webview);
+        mWebView.setWebViewClient(new WebViewClient(){
+            @Override
+            public boolean shouldOverrideUrlLoading (WebView view, String url) {
+                if (url.startsWith("ojiichan://")) {
+                    Uri uri = Uri.parse(url);
+                    Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                    startActivity(intent);
+                    return true;
+                }
+                return false;
+            }
+        });
         mWebView.getSettings().setAppCacheEnabled(false);
         mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.clearCache(true);
