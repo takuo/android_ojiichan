@@ -41,9 +41,9 @@ public class Main extends Activity implements
     private static final int ACTION_FUROHA = 3;
     private static final int ACTION_FUROA  = 4;
     private static boolean mAuthed = false;
-    public static Twitter mTwitter;
-    public static AccessToken mAccessToken;
-    public static String mScreenName;
+    private Twitter mTwitter;
+    private AccessToken mAccessToken;
+    private String mScreenName;
     private ProgressDialog mProgressDialog;
     private Context mContext;
     private MenuItem mItem;
