@@ -2,6 +2,7 @@ package jp.takuo.android.ojiichan;
 
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
+import twitter4j.TwitterFactory;
 import twitter4j.http.AccessToken;
 import twitter4j.http.RequestToken;
 import android.app.Activity;
@@ -24,9 +25,9 @@ public class TwitterLogin extends Activity {
     private static final String CALLBACK_URL = "ojiichan://oauthcallback/";
     private static final String LOG_TAG = "OjiichanLogin";
     private ProgressDialog mProgressDialog;
-    private Twitter mTwitter = Main.mTwitter;
+    private Twitter mTwitter;
     private RequestToken mRequestToken;
-    private AccessToken mAccessToken = Main.mAccessToken;
+    private AccessToken mAccessToken;
     private WebView mWebView;
     private Context mContext;
     private Intent mIntent;
@@ -84,14 +85,18 @@ public class TwitterLogin extends Activity {
         getWindow().requestFeature(Window.FEATURE_PROGRESS);
         getWindow().requestFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.login);
+        mTwitter = new TwitterFactory().getInstance();
+        mTwitter.setOAuthConsumer(Main.CONSUMER_KEY, Main.CONSUMER_SEC);
+
         mWebView = (WebView)findViewById(R.id.webview);
         mWebView.setWebViewClient(new WebViewClient(){
             @Override
             public boolean shouldOverrideUrlLoading (WebView view, String url) {
-                if (url.startsWith("ojiichan://")) {
+                if (url.startsWith(CALLBACK_URL)) {
                     Uri uri = Uri.parse(url);
-                    Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                    startActivity(intent);
+                    verify(uri);
+                    setResult(Activity.RESULT_OK, mIntent);
+                    finish();
                     return true;
                 }
                 return false;
@@ -112,10 +117,8 @@ public class TwitterLogin extends Activity {
         req.execute();
     }
 
-    @Override
-    protected void onNewIntent(Intent intent) {
-        Uri uri = intent.getData();
-        if (uri != null && uri.toString().startsWith(CALLBACK_URL)) {
+    private void verify(Uri uri) {
+        if (uri != null) {
             String verifier = uri.getQueryParameter("oauth_verifier");
             try {
                 mAccessToken = mTwitter.getOAuthAccessToken(mRequestToken, verifier);
@@ -133,8 +136,6 @@ public class TwitterLogin extends Activity {
             } catch (Exception e) {
                 Log.d(LOG_TAG, "Cannot get AccessToken: " + e.getMessage());
             }
-            setResult(Activity.RESULT_OK, mIntent);
-            finish();
         }
     }
 }
