@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animation-list xmlns:android="http://schemas.android.com/apk/res/android"
+  android:oneshot="true">
+  <item android:drawable="@drawable/anim_touch_001" android:duration="100" />
+  <item android:drawable="@drawable/anim_touch_002" android:duration="100" />
+  <item android:drawable="@drawable/anim_touch_003" android:duration="100" />
+  <item android:drawable="@drawable/anim_touch_004" android:duration="100" />
+</animation-list>

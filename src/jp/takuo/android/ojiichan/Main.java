@@ -63,17 +63,21 @@ public class Main extends Activity implements
     private ImageView mGabariButton;
     private ImageView mFurohaButton;
     private ImageView mFuroaButton;
+    private ImageView mParticle;
     private float mScaleX;
     private float mScaleY;
 
     class ButtonInfo {
         private int x, y;
+        private int width, height;
         private int offResourceId, onResourceId;
         private ImageView imageView;
         
-        ButtonInfo(int offResourceId, int onResourceId, int x, int y, ImageView imageView) {
+        ButtonInfo(int offResourceId, int onResourceId, int x, int y, int width, int height, ImageView imageView) {
             this.x = x;
             this.y = y;
+            this.width = width;
+            this.height = height;
             this.offResourceId = offResourceId;
             this.onResourceId = onResourceId;
             this.imageView = imageView;
@@ -81,6 +85,8 @@ public class Main extends Activity implements
 
         int getX() { return x; }
         int getY() { return y; }
+        int getWidth() { return width; }
+        int getHeight() { return height; }
         int getOffResourceId() { return offResourceId; }
         int getOnResourceId() { return onResourceId; }
         ImageView getImageView() { return imageView; }
@@ -95,22 +101,39 @@ public class Main extends Activity implements
     }
 
     class AnimationTerminator extends TimerTask {
+        private static final int DEFAULT_IMAGE_ID = 0;
+        
         private AnimationDrawable animation;
         private ImageView imageView;
         private int imageId;
+        private boolean disableOnTerminate;
         
         AnimationTerminator(AnimationDrawable animation, ImageView imageView, int imageId) {
             this.animation = animation;
             this.imageView = imageView;
             this.imageId = imageId;
+            this.disableOnTerminate = false;
+        }
+
+        // for particle
+        AnimationTerminator(AnimationDrawable animation, ImageView imageView, boolean disableOnTerminate) {
+            this.animation = animation;
+            this.imageView = imageView;
+            this.imageId = DEFAULT_IMAGE_ID;
+            this.disableOnTerminate = disableOnTerminate;
+        }
+
+        public void terminate() {
+            if (animation != null) animation.stop();
+            if (imageId != DEFAULT_IMAGE_ID) imageView.setImageResource(imageId);
+            if (disableOnTerminate) imageView.setVisibility(View.GONE);
         }
 
         @Override
         public void run() {
             mHandler.post(new Runnable() {
                 public void run() {
-                    if (animation != null) animation.stop();
-                    imageView.setImageResource(imageId);
+                    terminate();
                 }
             });
         }
@@ -119,6 +142,7 @@ public class Main extends Activity implements
     private ButtonInfo mLastActionButton;
     private Handler mHandler;
     AnimationDrawable mAnimation;
+    AnimationDrawable mParticleAnimation;
     private HashMap<Integer, ButtonInfo> mButtonInfo;
 
     @Override
@@ -132,6 +156,7 @@ public class Main extends Activity implements
         mGabariButton = (ImageView)findViewById(R.id.button_gabari);
         mFurohaButton = (ImageView)findViewById(R.id.button_furoha);
         mFuroaButton = (ImageView)findViewById(R.id.button_furoa);
+        mParticle = (ImageView)findViewById(R.id.particle);
         ImageView image = (ImageView)findViewById(R.id.mainimage);
         
         WindowManager wm = (WindowManager)getSystemService(WINDOW_SERVICE);
@@ -186,6 +211,18 @@ public class Main extends Activity implements
                         buttonInfo.buttonOn();
                         mLastActionButton = buttonInfo;
                     }
+
+                    Matrix matrix = new Matrix();
+                    matrix.reset();
+                    matrix.postScale(mScaleX, mScaleY);
+                    mParticle.setImageMatrix(matrix);
+                    mParticle.setPadding((int)(-75 * mScaleX + event.getX()), (int)(-75 + mScaleY +event.getY()), 0, 0);
+                    mParticle.setVisibility(View.VISIBLE);
+                    mParticle.setImageResource(R.drawable.animation_touch);
+                    //if (mParticleAnimation != null) mParticleAnimation.terminate();
+                    mParticleAnimation = (AnimationDrawable)mParticle.getDrawable();
+                    mParticleAnimation.start();
+                    new Timer().schedule(new AnimationTerminator(mParticleAnimation, mParticle, true), 4 * 100);
                 } else if (event.getAction() == MotionEvent.ACTION_UP ) {
                     Log.d(LOG_TAG, "UP ACTION: " + curAction);
                     if (mLastActionButton != null) {
@@ -204,23 +241,26 @@ public class Main extends Activity implements
         });
 
         mButtonInfo = new HashMap<Integer, ButtonInfo>();
-        mButtonInfo.put(ACTION_BATARI, new ButtonInfo(R.drawable.button_batari_off, R.drawable.button_batari_on, 81, 292, mBatariButton));
-        mButtonInfo.put(ACTION_GABARI, new ButtonInfo(R.drawable.button_gabari_off, R.drawable.button_gabari_on, 98, 443, mGabariButton));
-        mButtonInfo.put(ACTION_FUROHA, new ButtonInfo(R.drawable.button_furoha_off, R.drawable.button_furoha_on, 228, 292, mFurohaButton));
-        mButtonInfo.put(ACTION_FUROA, new ButtonInfo(R.drawable.button_furoa_off, R.drawable.button_furoa_on, 238, 438, mFuroaButton));
+        mButtonInfo.put(ACTION_BATARI, new ButtonInfo(R.drawable.button_batari_off, R.drawable.button_batari_on, 81, 292, 147, 152, mBatariButton));
+        mButtonInfo.put(ACTION_GABARI, new ButtonInfo(R.drawable.button_gabari_off, R.drawable.button_gabari_on, 98, 443, 106, 111, mGabariButton));
+        mButtonInfo.put(ACTION_FUROHA, new ButtonInfo(R.drawable.button_furoha_off, R.drawable.button_furoha_on, 228, 292, 133, 143, mFurohaButton));
+        mButtonInfo.put(ACTION_FUROA, new ButtonInfo(R.drawable.button_furoa_off, R.drawable.button_furoa_on, 238, 438, 156, 129, mFuroaButton));
 
         Matrix matrix = new Matrix();
         matrix.reset();
         matrix.postScale(mScaleX, mScaleY);
-        matrix.postTranslate(42 * mScaleX, 48 * mScaleY + MAGIC_HEIGHT * mScaleY);
         mScreenImage.setImageMatrix(matrix);
+        mScreenImage.setPadding((int)(42 * mScaleX), (int)((50 + MAGIC_HEIGHT) * mScaleY), 0, 0);
 
         for (ButtonInfo bi : mButtonInfo.values()) {
             matrix.reset();
             matrix.postScale(mScaleX, mScaleY);
-            matrix.postTranslate(bi.getX() * mScaleX, (bi.getY() + MAGIC_HEIGHT) * mScaleY);
-            bi.getImageView().setImageMatrix(matrix);
+            ImageView iv = bi.getImageView();
+            iv.setImageMatrix(matrix);
+            iv.setPadding((int)(bi.getX() * mScaleX), (int)((bi.getY() + MAGIC_HEIGHT) * mScaleY), 0, 0);
         }
+
+        mParticle.setVisibility(View.GONE);
         
         mTwitter = new TwitterFactory().getInstance();
         mTwitter.setOAuthConsumer(CONSUMER_KEY, CONSUMER_SEC);
