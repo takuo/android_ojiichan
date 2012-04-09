@@ -3,7 +3,7 @@ package jp.takuo.android.ojiichan;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
-import twitter4j.http.AccessToken;
+import twitter4j.auth.AccessToken;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -13,6 +13,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
@@ -20,9 +21,19 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.View.OnTouchListener;
+import android.view.Display;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
+import android.widget.LinearLayout;
+import android.graphics.Matrix;
+import android.graphics.drawable.AnimationDrawable;
+import android.util.DisplayMetrics;
+import java.util.HashMap;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class Main extends Activity implements
     DialogInterface.OnClickListener, DialogInterface.OnCancelListener {
@@ -40,35 +51,150 @@ public class Main extends Activity implements
     private static final int ACTION_BATARI = 2;
     private static final int ACTION_FUROHA = 3;
     private static final int ACTION_FUROA  = 4;
+    private static final int MAGIC_HEIGHT = -19; // なんかy座標ずれるので調整してたらこの値だったけど詳細不明
     private static boolean mAuthed = false;
     private Twitter mTwitter;
     private AccessToken mAccessToken;
     private String mScreenName;
-    private ProgressDialog mProgressDialog;
     private Context mContext;
     private MenuItem mItem;
+    private ImageView mScreenImage;
+    private ImageView mBatariButton;
+    private ImageView mGabariButton;
+    private ImageView mFurohaButton;
+    private ImageView mFuroaButton;
+    private ImageView mParticle;
+    private float mScaleX;
+    private float mScaleY;
+
+    class ButtonInfo {
+        private int x, y;
+        private int width, height;
+        private int offResourceId, onResourceId;
+        private ImageView imageView;
+        
+        ButtonInfo(int offResourceId, int onResourceId, int x, int y, int width, int height, ImageView imageView) {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+            this.offResourceId = offResourceId;
+            this.onResourceId = onResourceId;
+            this.imageView = imageView;
+        }
+
+        int getX() { return x; }
+        int getY() { return y; }
+        int getWidth() { return width; }
+        int getHeight() { return height; }
+        int getOffResourceId() { return offResourceId; }
+        int getOnResourceId() { return onResourceId; }
+        ImageView getImageView() { return imageView; }
+
+        void buttonOn() {
+            imageView.setImageResource(onResourceId);
+        }
+
+        void buttonOff() {
+            imageView.setImageResource(offResourceId);
+        }
+    }
+
+    class AnimationTerminator extends TimerTask {
+        private static final int DEFAULT_IMAGE_ID = 0;
+        
+        private AnimationDrawable animation;
+        private ImageView imageView;
+        private int imageId;
+        private boolean disableOnTerminate;
+        
+        AnimationTerminator(AnimationDrawable animation, ImageView imageView, int imageId) {
+            this.animation = animation;
+            this.imageView = imageView;
+            this.imageId = imageId;
+            this.disableOnTerminate = false;
+        }
+
+        // for particle
+        AnimationTerminator(AnimationDrawable animation, ImageView imageView, boolean disableOnTerminate) {
+            this.animation = animation;
+            this.imageView = imageView;
+            this.imageId = DEFAULT_IMAGE_ID;
+            this.disableOnTerminate = disableOnTerminate;
+        }
+
+        public void terminate() {
+            if (animation != null) animation.stop();
+            if (imageId != DEFAULT_IMAGE_ID) imageView.setImageResource(imageId);
+            if (disableOnTerminate) imageView.setVisibility(View.GONE);
+        }
+
+        @Override
+        public void run() {
+            mHandler.post(new Runnable() {
+                public void run() {
+                    terminate();
+                }
+            });
+        }
+    }
+
+    private ButtonInfo mLastActionButton;
+    private Handler mHandler;
+    AnimationDrawable mAnimation;
+    AnimationDrawable mParticleAnimation;
+    private HashMap<Integer, ButtonInfo> mButtonInfo;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mContext = getApplicationContext();
         setContentView(R.layout.main);
+        mHandler = new Handler();
+        mScreenImage = (ImageView)findViewById(R.id.screenimage);
+        mBatariButton = (ImageView)findViewById(R.id.button_batari);
+        mGabariButton = (ImageView)findViewById(R.id.button_gabari);
+        mFurohaButton = (ImageView)findViewById(R.id.button_furoha);
+        mFuroaButton = (ImageView)findViewById(R.id.button_furoa);
+        mParticle = (ImageView)findViewById(R.id.particle);
         ImageView image = (ImageView)findViewById(R.id.mainimage);
+        
+        WindowManager wm = (WindowManager)getSystemService(WINDOW_SERVICE);
+        Display disp = wm.getDefaultDisplay();
+        DisplayMetrics metrics = new DisplayMetrics();
+        disp.getMetrics(metrics);
+
+        int titleBarHeight = 0;
+        switch (metrics.densityDpi) {
+        case DisplayMetrics.DENSITY_HIGH:
+            titleBarHeight = 48;
+            break;
+        case DisplayMetrics.DENSITY_MEDIUM:
+            titleBarHeight = 32;
+            break;
+        case DisplayMetrics.DENSITY_LOW:
+            titleBarHeight = 24;
+            break;
+        }
+        
+        Log.d(LOG_TAG, "titleBarHeight = " + titleBarHeight);
+        int w = disp.getWidth();
+        int h = disp.getHeight() - titleBarHeight;
+        Log.d(LOG_TAG, "w: " + w + ", h: " + h);
+        mScaleX = (float)w / (float)438;
+        mScaleY = (float)h / (float)600;
+        Log.d(LOG_TAG, "mScaleX: " + mScaleX + ", mScaleY:" + mScaleY);
         image.setOnTouchListener(new OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 // FIXME: make better ImageMap implementation.
                 float x;
                 float y;
-                int w = v.getWidth();
-                int h = v.getHeight();
                 int curAction = ACTION_NONE;
-                float xscale = (float)w / (float)438;
-                float yscale = (float)h / (float)600;
 
-                x = event.getX() / xscale;
-                y = event.getY() / yscale;
-                // Log.d(LOG_TAG, "x: " + x + ", y:" + y);
+                x = event.getX() / mScaleX;
+                y = event.getY() / mScaleY;
+                Log.d(LOG_TAG, "x: " + x + ", y:" + y);
                 if (x >= 90 && x <= 210 &&
                         y >= 300 && y <= 425) curAction = ACTION_BATARI;
                 else if (x >= 110 && x <= 200 &&
@@ -80,13 +206,62 @@ public class Main extends Activity implements
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     mActionType = curAction;
                     Log.d(LOG_TAG, "DOWN ACTION: " + curAction);
+                    if (mActionType != ACTION_NONE) {
+                        ButtonInfo buttonInfo = mButtonInfo.get(mActionType);
+                        buttonInfo.buttonOn();
+                        mLastActionButton = buttonInfo;
+                    }
+
+                    Matrix matrix = new Matrix();
+                    matrix.reset();
+                    matrix.postScale(mScaleX, mScaleY);
+                    mParticle.setImageMatrix(matrix);
+                    mParticle.setPadding((int)(-75 * mScaleX + event.getX()), (int)(-75 + mScaleY +event.getY()), 0, 0);
+                    mParticle.setVisibility(View.VISIBLE);
+                    mParticle.setImageResource(R.drawable.animation_touch);
+                    //if (mParticleAnimation != null) mParticleAnimation.terminate();
+                    mParticleAnimation = (AnimationDrawable)mParticle.getDrawable();
+                    mParticleAnimation.start();
+                    new Timer().schedule(new AnimationTerminator(mParticleAnimation, mParticle, true), 4 * 100);
                 } else if (event.getAction() == MotionEvent.ACTION_UP ) {
                     Log.d(LOG_TAG, "UP ACTION: " + curAction);
-                    if (mActionType == curAction) doAction(mActionType);
+                    if (mLastActionButton != null) {
+                        mLastActionButton.buttonOff();
+                    }
+                    if (mActionType == curAction) {
+                        doAction(mActionType);
+                        if (mLastActionButton != null) {
+                            mLastActionButton.buttonOff();
+                            mLastActionButton = null;
+                        }
+                    }
                 }
                 return true;
             }
         });
+
+        mButtonInfo = new HashMap<Integer, ButtonInfo>();
+        mButtonInfo.put(ACTION_BATARI, new ButtonInfo(R.drawable.button_batari_off, R.drawable.button_batari_on, 81, 292, 147, 152, mBatariButton));
+        mButtonInfo.put(ACTION_GABARI, new ButtonInfo(R.drawable.button_gabari_off, R.drawable.button_gabari_on, 98, 443, 106, 111, mGabariButton));
+        mButtonInfo.put(ACTION_FUROHA, new ButtonInfo(R.drawable.button_furoha_off, R.drawable.button_furoha_on, 228, 292, 133, 143, mFurohaButton));
+        mButtonInfo.put(ACTION_FUROA, new ButtonInfo(R.drawable.button_furoa_off, R.drawable.button_furoa_on, 238, 438, 156, 129, mFuroaButton));
+
+        Matrix matrix = new Matrix();
+        matrix.reset();
+        matrix.postScale(mScaleX, mScaleY);
+        mScreenImage.setImageMatrix(matrix);
+        mScreenImage.setPadding((int)(42 * mScaleX), (int)((50 + MAGIC_HEIGHT) * mScaleY), 0, 0);
+
+        for (ButtonInfo bi : mButtonInfo.values()) {
+            matrix.reset();
+            matrix.postScale(mScaleX, mScaleY);
+            ImageView iv = bi.getImageView();
+            iv.setImageMatrix(matrix);
+            iv.setPadding((int)(bi.getX() * mScaleX), (int)((bi.getY() + MAGIC_HEIGHT) * mScaleY), 0, 0);
+        }
+
+        mParticle.setVisibility(View.GONE);
+        
         mTwitter = new TwitterFactory().getInstance();
         mTwitter.setOAuthConsumer(CONSUMER_KEY, CONSUMER_SEC);
         isAuthed();
@@ -130,29 +305,39 @@ public class Main extends Activity implements
         private String mText;
 
         public AsyncUpdate() {
-            mProgressDialog = new ProgressDialog(Main.this);
-            mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         }
 
         protected void onProgressUpdate(String... progress) {
-            mProgressDialog.setMessage(progress[0]);
         }
 
         protected void onPreExecute() {
             super.onPreExecute();
-            mProgressDialog.setIndeterminate(true);
-            mProgressDialog.setTitle(R.string.sending_title);
-            mProgressDialog.show();
+            mScreenImage.setImageResource(R.drawable.animation_screen_post);
+            mAnimation = (AnimationDrawable)mScreenImage.getDrawable();
+            mAnimation.start();
         }
 
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
-            if(mProgressDialog != null &&
-                mProgressDialog.isShowing()) {
-                mProgressDialog.dismiss();
-                mProgressDialog = null;
+            if (mText.equals(getString(R.string.success))) {
+                mHandler.post(new Runnable() {
+                    public void run() {
+                        mAnimation.stop();
+                        mScreenImage.setImageResource(R.drawable.animation_screen_ok);
+                        mAnimation = (AnimationDrawable)mScreenImage.getDrawable();
+                        mAnimation.start();
+                        new Timer().schedule(new AnimationTerminator(mAnimation, mScreenImage, R.drawable.screen_blank), 3 * 1000);
+                    }
+                });
+            } else {
+                mHandler.post(new Runnable() {
+                    public void run() {
+                        mScreenImage.setImageResource(R.drawable.screen_ng);
+                        new Timer().schedule(new AnimationTerminator(null, mScreenImage, R.drawable.screen_blank), 3 * 1000);
+                    }
+                });
+                Toast.makeText(mContext, mText, Toast.LENGTH_LONG).show();
             }
-            Toast.makeText(mContext, mText, Toast.LENGTH_LONG).show();
         }
 
         @Override
