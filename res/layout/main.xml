@@ -1,13 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:orientation="vertical"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
     >
-        <ImageView android:src="@drawable/main"
+    <FrameLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent">
+        <ImageView android:src="@drawable/body"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:id="@+id/mainimage"
+            android:scaleType="fitXY"
+            />
+        <ImageView android:id="@+id/screenimage"
+            android:src="@drawable/screen_blank"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/mainimage"
-            android:scaleType="fitXY" />
-
+            android:scaleType="fitXY"
+            />
+        <ImageView android:id="@+id/button_batari"
+            android:src="@drawable/button_batari_off"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:scaleType="fitXY"
+            />
+        <ImageView android:id="@+id/button_furoha"
+            android:src="@drawable/button_furoha_off"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:scaleType="fitXY"
+            />
+        <ImageView android:id="@+id/button_gabari"
+            android:src="@drawable/button_gabari_off"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:scaleType="fitXY"
+            />
+        <ImageView android:id="@+id/button_furoa"
+            android:src="@drawable/button_furoa_off"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:scaleType="fitXY"
+            />
+        <ImageView android:id="@+id/particle"
+            android:src="@drawable/anim_touch_001"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:scaleType="fitXY"
+            />
+    </FrameLayout>
 </LinearLayout>
