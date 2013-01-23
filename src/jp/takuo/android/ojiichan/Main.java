@@ -6,7 +6,6 @@ import twitter4j.TwitterFactory;
 import twitter4j.auth.AccessToken;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -17,21 +16,19 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnTouchListener;
 import android.view.Display;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
-import android.widget.LinearLayout;
 import android.graphics.Matrix;
 import android.graphics.drawable.AnimationDrawable;
 import android.util.DisplayMetrics;
-import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -143,7 +140,7 @@ public class Main extends Activity implements
     private Handler mHandler;
     AnimationDrawable mAnimation;
     AnimationDrawable mParticleAnimation;
-    private HashMap<Integer, ButtonInfo> mButtonInfo;
+    private SparseArray<ButtonInfo> mButtonInfo;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -187,7 +184,7 @@ public class Main extends Activity implements
         image.setOnTouchListener(new OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                // FIXME: make better ImageMap implementation.
+                // TODO: make better ImageMap implementation.
                 float x;
                 float y;
                 int curAction = ACTION_NONE;
@@ -240,7 +237,8 @@ public class Main extends Activity implements
             }
         });
 
-        mButtonInfo = new HashMap<Integer, ButtonInfo>();
+        mButtonInfo = new SparseArray<ButtonInfo>(5);
+        mButtonInfo.put(ACTION_NONE, null);
         mButtonInfo.put(ACTION_BATARI, new ButtonInfo(R.drawable.button_batari_off, R.drawable.button_batari_on, 81, 292, 147, 152, mBatariButton));
         mButtonInfo.put(ACTION_GABARI, new ButtonInfo(R.drawable.button_gabari_off, R.drawable.button_gabari_on, 98, 443, 106, 111, mGabariButton));
         mButtonInfo.put(ACTION_FUROHA, new ButtonInfo(R.drawable.button_furoha_off, R.drawable.button_furoha_on, 228, 292, 133, 143, mFurohaButton));
@@ -252,7 +250,8 @@ public class Main extends Activity implements
         mScreenImage.setImageMatrix(matrix);
         mScreenImage.setPadding((int)(42 * mScaleX), (int)((50 + MAGIC_HEIGHT) * mScaleY), 0, 0);
 
-        for (ButtonInfo bi : mButtonInfo.values()) {
+        for (int i = 1; i < mButtonInfo.size(); i++) {
+            ButtonInfo bi = mButtonInfo.get(i);
             matrix.reset();
             matrix.postScale(mScaleX, mScaleY);
             ImageView iv = bi.getImageView();
