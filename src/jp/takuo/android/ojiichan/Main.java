@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -26,8 +27,11 @@ import android.view.Display;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.drawable.AnimationDrawable;
+import android.graphics.drawable.BitmapDrawable;
 import android.util.DisplayMetrics;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -55,6 +59,7 @@ public class Main extends Activity implements
     private String mScreenName;
     private Context mContext;
     private MenuItem mItem;
+    private ImageView mMainImage;
     private ImageView mScreenImage;
     private ImageView mBatariButton;
     private ImageView mGabariButton;
@@ -63,6 +68,8 @@ public class Main extends Activity implements
     private ImageView mParticle;
     private float mScaleX;
     private float mScaleY;
+    private float mResizeX;
+    private float mResizeY;
 
     class ButtonInfo {
         private int x, y;
@@ -89,11 +96,11 @@ public class Main extends Activity implements
         ImageView getImageView() { return imageView; }
 
         void buttonOn() {
-            imageView.setImageResource(onResourceId);
+            setScaledImage(imageView, onResourceId);
         }
 
         void buttonOff() {
-            imageView.setImageResource(offResourceId);
+            setScaledImage(imageView, offResourceId);
         }
     }
 
@@ -122,7 +129,9 @@ public class Main extends Activity implements
 
         public void terminate() {
             if (animation != null) animation.stop();
-            if (imageId != DEFAULT_IMAGE_ID) imageView.setImageResource(imageId);
+            if (imageId != DEFAULT_IMAGE_ID) {
+                setScaledImage(imageView, imageId);
+            }
             if (disableOnTerminate) imageView.setVisibility(View.GONE);
         }
 
@@ -141,6 +150,28 @@ public class Main extends Activity implements
     AnimationDrawable mAnimation;
     AnimationDrawable mParticleAnimation;
     private SparseArray<ButtonInfo> mButtonInfo;
+    private Resources mResources;
+
+    private void setScaledImage(ImageView imageView, int resource_id) {
+        Bitmap bitmap = BitmapFactory.decodeResource(mResources, resource_id);
+        Bitmap bitmap2 = Bitmap.createScaledBitmap(bitmap, (int)(bitmap.getWidth()* mResizeX), (int)(bitmap.getHeight() * mResizeY), false);
+        imageView.setImageBitmap(bitmap2);
+    }
+
+    protected AnimationDrawable createScaledAnimation(ImageView imageView, int resource_id) {
+        AnimationDrawable animationDrawable = (AnimationDrawable)(mResources.getDrawable(resource_id));
+        AnimationDrawable retval = new AnimationDrawable();
+        for (int i = 0; i < animationDrawable.getNumberOfFrames(); i++) {
+            BitmapDrawable drawable = (BitmapDrawable)animationDrawable.getFrame(i);
+            Bitmap bitmap = drawable.getBitmap();
+            Bitmap bitmap2 = Bitmap.createScaledBitmap(bitmap, (int)(bitmap.getWidth()*mResizeX), (int)(bitmap.getHeight()*mResizeY), false);
+            BitmapDrawable bd = new BitmapDrawable(bitmap2);
+            bd.setTargetDensity(bitmap.getDensity());
+            retval.addFrame(bd, animationDrawable.getDuration(i));
+        }
+        imageView.setImageDrawable(retval);
+        return retval;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -148,6 +179,8 @@ public class Main extends Activity implements
         mContext = getApplicationContext();
         setContentView(R.layout.main);
         mHandler = new Handler();
+        mResources = getResources();
+        mMainImage = (ImageView)findViewById(R.id.mainimage);
         mScreenImage = (ImageView)findViewById(R.id.screenimage);
         mBatariButton = (ImageView)findViewById(R.id.button_batari);
         mGabariButton = (ImageView)findViewById(R.id.button_gabari);
@@ -163,8 +196,15 @@ public class Main extends Activity implements
 
         int titleBarHeight = 0;
         switch (metrics.densityDpi) {
+        case 480: // DisplayMetrics.DENSITY_XXHIGH: (API Level 16)
+            titleBarHeight = 96;
+        case 320: // DisplayMetrics.DENSITY_XHIGH: (API Level 9)
+            titleBarHeight = 64;
         case DisplayMetrics.DENSITY_HIGH:
             titleBarHeight = 48;
+            break;
+        case 213: //DisplayMetrics.DENSITY_TV: (API Level 13)
+            titleBarHeight = 42;
             break;
         case DisplayMetrics.DENSITY_MEDIUM:
             titleBarHeight = 32;
@@ -173,7 +213,6 @@ public class Main extends Activity implements
             titleBarHeight = 24;
             break;
         }
-        
         Log.d(LOG_TAG, "titleBarHeight = " + titleBarHeight);
         int w = disp.getWidth();
         int h = disp.getHeight() - titleBarHeight;
@@ -181,6 +220,18 @@ public class Main extends Activity implements
         mScaleX = (float)w / (float)438;
         mScaleY = (float)h / (float)600;
         Log.d(LOG_TAG, "mScaleX: " + mScaleX + ", mScaleY:" + mScaleY);
+
+        BitmapDrawable d = (BitmapDrawable)mMainImage.getDrawable();
+        mResizeX = (float)w / (float)d.getBitmap().getWidth() ;
+        mResizeY = (float)h / (float)d.getBitmap().getHeight();
+        Log.d(LOG_TAG, "mResizeX: " + mResizeX + ", mResizeY:" + mResizeY);
+
+        setScaledImage(mScreenImage, R.drawable.screen_blank);
+        setScaledImage(mBatariButton, R.drawable.button_batari_off);
+        setScaledImage(mGabariButton, R.drawable.button_gabari_off);
+        setScaledImage(mFuroaButton, R.drawable.button_furoa_off);
+        setScaledImage(mFurohaButton, R.drawable.button_furoha_off);
+
         image.setOnTouchListener(new OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -311,8 +362,7 @@ public class Main extends Activity implements
 
         protected void onPreExecute() {
             super.onPreExecute();
-            mScreenImage.setImageResource(R.drawable.animation_screen_post);
-            mAnimation = (AnimationDrawable)mScreenImage.getDrawable();
+            mAnimation = createScaledAnimation(mScreenImage, R.drawable.animation_screen_post);
             mAnimation.start();
         }
 
@@ -322,8 +372,7 @@ public class Main extends Activity implements
                 mHandler.post(new Runnable() {
                     public void run() {
                         mAnimation.stop();
-                        mScreenImage.setImageResource(R.drawable.animation_screen_ok);
-                        mAnimation = (AnimationDrawable)mScreenImage.getDrawable();
+                        mAnimation = createScaledAnimation(mScreenImage, R.drawable.animation_screen_ok);
                         mAnimation.start();
                         new Timer().schedule(new AnimationTerminator(mAnimation, mScreenImage, R.drawable.screen_blank), 3 * 1000);
                     }
@@ -331,7 +380,7 @@ public class Main extends Activity implements
             } else {
                 mHandler.post(new Runnable() {
                     public void run() {
-                        mScreenImage.setImageResource(R.drawable.screen_ng);
+                        setScaledImage(mScreenImage, R.drawable.screen_ng);
                         new Timer().schedule(new AnimationTerminator(null, mScreenImage, R.drawable.screen_blank), 3 * 1000);
                     }
                 });
