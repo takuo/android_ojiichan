@@ -363,6 +363,7 @@ public class Main extends Activity implements
         protected void onPreExecute() {
             super.onPreExecute();
             mAnimation = createScaledAnimation(mScreenImage, R.drawable.animation_screen_post);
+            mAnimation.setOneShot(false);
             mAnimation.start();
         }
 
@@ -373,6 +374,7 @@ public class Main extends Activity implements
                     public void run() {
                         mAnimation.stop();
                         mAnimation = createScaledAnimation(mScreenImage, R.drawable.animation_screen_ok);
+                        mAnimation.setOneShot(false);
                         mAnimation.start();
                         new Timer().schedule(new AnimationTerminator(mAnimation, mScreenImage, R.drawable.screen_blank), 3 * 1000);
                     }
