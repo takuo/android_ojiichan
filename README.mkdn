@@ -1,5 +1,4 @@
-おじいちゃん携帯 for Android
-============================
+# おじいちゃん携帯 for Android
 
 おじいちゃん携帯オリジナルについては koyachi さんによるもので、
 こちらを参照してください。  
@@ -9,11 +8,20 @@ https://github.com/koyachi/app-ojiichankeitai2
 当方のAndroid版はJava/twitter4jで実装してあります。
 
 
-ビルドとエミュレータでの動作確認方法
-===============================
+## ビルドとエミュレータでの動作確認方法
 
 1. libs以下にtwitter4j(http://twitter4j.org/ja/index.html)のjarを配置
 2. エミュレータ起動(例: emulator -avd Android_2.1)
 3. ビルド(ant debug)
 4. エミュレータにインストール(/path/to/android-sdk/platform-tools/adb install ./bin/Main-debug-unaligned.apk)
 5. エミュレータ上でおじいちゃん携帯アプリを起動
+
+
+## FAQ
+
+Q. なにこれ  
+A. おじいちゃん携帯
+
+Q. 連投うざい  
+A. 連投してる本人に呈してください
+
