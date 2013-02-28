@@ -4,9 +4,9 @@
     <string name="login">Login</string>
     <string name="logout">Logout</string>
     <string name="twitter_login">Twitter Login</string>
-    <string name="dialog_message">Preparing OAuth...</string>
+    <string name="dialog_message">Preparing OAuth&#8230;</string>
     <string name="dialog_title">Twitter Login</string>
-    <string name="logout_message">Logout...</string>
+    <string name="logout_message">Logout&#8230;</string>
     <string name="action_batari">batari</string>
     <string name="action_gabari">gabari</string>
     <string name="action_furoha">furoha</string>
@@ -20,4 +20,6 @@
     <string name="avoid_limit">Adding time information into status text to avoid API limitation.</string>
     <string name="not_loggedin">Not logged in</string>
     <string name="oauth_fail">Failed to OAuth</string>
+    <string name="ok">OK</string>
+    <string name="pin">PIN</string>
 </resources>

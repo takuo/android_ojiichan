@@ -1,6 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<WebView  xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/webview"
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-/>
+    android:layout_height="fill_parent">
+
+    <WebView
+        android:id="@+id/webview"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/buttonPIN"
+        android:focusable="true"
+        android:layout_alignParentTop="true" />
+
+    <TextView
+        android:id="@+id/labelPIN"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/webview"
+        android:layout_centerHorizontal="false"
+        android:layout_centerVertical="false"
+        android:gravity="center_vertical"
+        android:text="@string/pin" />
+
+    <EditText
+        android:id="@+id/edit_code"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_toLeftOf="@+id/buttonPIN"
+        android:layout_toRightOf="@+id/labelPIN"
+        android:enabled="false"
+        android:inputType="number" />
+
+    <Button
+        android:id="@+id/buttonPIN"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:enabled="false"
+        android:text="@string/ok" />
+
+</RelativeLayout>

@@ -4,6 +4,7 @@ import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 import twitter4j.auth.AccessToken;
+import android.R.integer;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -12,6 +13,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -30,9 +32,11 @@ import android.widget.Toast;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.graphics.Point;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.BitmapDrawable;
 import android.util.DisplayMetrics;
+
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -165,7 +169,7 @@ public class Main extends Activity implements
             BitmapDrawable drawable = (BitmapDrawable)animationDrawable.getFrame(i);
             Bitmap bitmap = drawable.getBitmap();
             Bitmap bitmap2 = Bitmap.createScaledBitmap(bitmap, (int)(bitmap.getWidth()*mResizeX), (int)(bitmap.getHeight()*mResizeY), false);
-            BitmapDrawable bd = new BitmapDrawable(bitmap2);
+            BitmapDrawable bd = new BitmapDrawable(getResources(), bitmap2);
             bd.setTargetDensity(bitmap.getDensity());
             retval.addFrame(bd, animationDrawable.getDuration(i));
         }
@@ -187,7 +191,6 @@ public class Main extends Activity implements
         mFurohaButton = (ImageView)findViewById(R.id.button_furoha);
         mFuroaButton = (ImageView)findViewById(R.id.button_furoa);
         mParticle = (ImageView)findViewById(R.id.particle);
-        ImageView image = (ImageView)findViewById(R.id.mainimage);
         
         WindowManager wm = (WindowManager)getSystemService(WINDOW_SERVICE);
         Display disp = wm.getDefaultDisplay();
@@ -214,8 +217,16 @@ public class Main extends Activity implements
             break;
         }
         Log.d(LOG_TAG, "titleBarHeight = " + titleBarHeight);
-        int w = disp.getWidth();
-        int h = disp.getHeight() - titleBarHeight;
+        int w, h;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB_MR2) {
+            w = disp.getWidth();
+            h = disp.getHeight() - titleBarHeight;
+        } else {
+            Point dispSize = new Point();
+            disp.getSize(dispSize);
+            w = dispSize.x;
+            h = dispSize.y - titleBarHeight;
+        }
         Log.d(LOG_TAG, "w: " + w + ", h: " + h);
         mScaleX = (float)w / (float)438;
         mScaleY = (float)h / (float)600;
@@ -232,7 +243,7 @@ public class Main extends Activity implements
         setScaledImage(mFuroaButton, R.drawable.button_furoa_off);
         setScaledImage(mFurohaButton, R.drawable.button_furoha_off);
 
-        image.setOnTouchListener(new OnTouchListener() {
+        mMainImage.setOnTouchListener(new OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 // TODO: make better ImageMap implementation.
