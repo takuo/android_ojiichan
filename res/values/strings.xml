@@ -5,6 +5,7 @@
     <string name="logout">Logout</string>
     <string name="twitter_login">Twitter Login</string>
     <string name="dialog_message">Preparing OAuth&#8230;</string>
+    <string name="dialog_request_token_message">Request access token&#8230;</string>
     <string name="dialog_title">Twitter Login</string>
     <string name="logout_message">Logout&#8230;</string>
     <string name="action_batari">batari</string>

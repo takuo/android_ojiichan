@@ -5,6 +5,7 @@
     <string name="logout">ログアウト</string>
     <string name="twitter_login">Twitter ログイン</string>
     <string name="dialog_message">OAuth を準備中&#8230;</string>
+    <string name="dialog_request_token_message">トークンを取得中&#8230;</string>
     <string name="dialog_title">Twitter ログイン</string>
     <string name="logout_message">ログアウトしました&#8230;</string>
     <string name="action_batari">バタリ</string>
