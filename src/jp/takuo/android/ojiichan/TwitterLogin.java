@@ -22,6 +22,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -82,26 +83,26 @@ public class TwitterLogin extends Activity {
             try {
                 mRequestToken = mTwitter.getOAuthRequestToken(CALLBACK_URL);
             } catch (TwitterException e) {
-                Log.d(LOG_TAG, "Cannot get request token: " + e.getMessage());
+                Log.e(LOG_TAG, "Cannot get request token: " + e.getMessage());
             }
             return null;
         }
     }
 
-    class HTMLParser {
-        public void log(String str) {
+    private class HTMLParser {
+
+        @JavascriptInterface
+        public void parse(String str) {
             Pattern p = Pattern.compile("<code>(\\d+)</code>");
             Matcher m = p.matcher(str);
             if (m.find()) {
                 final String pin = m.group(1);
-                Log.d("HTMLParser", "PIN CODE: "+ pin);
                 mHandler.post(new Runnable() {
                     @Override
                     public void run() {
                         mEditPIN.setText(pin);
                         mEditPIN.setEnabled(true);
                         mButtonOK.setEnabled(true);
-//                        verifyCode(pin);
                     }
                 });
             }
@@ -126,12 +127,12 @@ public class TwitterLogin extends Activity {
         mButtonOK.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                verifyCode(mEditPIN.getText().toString());
+                new NetworkRequest().execute((mEditPIN.getText().toString()));
             }
         });
         mEditPIN  = (EditText)findViewById(R.id.edit_code);
         mWebView = (WebView)findViewById(R.id.webview);
-        mWebView.addJavascriptInterface(new HTMLParser(), "htmlParser");
+        mWebView.addJavascriptInterface(new HTMLParser(), "HTMLParser");
         mWebView.setWebViewClient(new WebViewClient(){
             /*
             @Override
@@ -147,7 +148,7 @@ public class TwitterLogin extends Activity {
             }*/
             @Override
             public void onPageFinished (WebView view, String url) {
-                view.loadUrl("javascript:window.htmlParser.log(document.documentElement.outerHTML);");
+                view.loadUrl("javascript:window.HTMLParser.parse(document.documentElement.outerHTML);");
             }
         });
         mWebView.getSettings().setAppCacheEnabled(false);
@@ -165,31 +166,46 @@ public class TwitterLogin extends Activity {
         req.execute();
     }
 
-    /*
-    private void verify(Uri uri) {
-        if (uri != null) {
-            String verifier = uri.getQueryParameter("oauth_verifier");
-            try {
-                mAccessToken = mTwitter.getOAuthAccessToken(mRequestToken, verifier);
-                mTwitter.setOAuthAccessToken(mAccessToken);
-                String name = mTwitter.getScreenName();
-                SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
-                SharedPreferences.Editor editor = pref.edit();
-                editor.putString(Main.PREF_ACCESS_TOKEN, mAccessToken.getToken());
-                editor.putString(Main.PREF_ACCESS_TOKEN_SECRET, mAccessToken.getTokenSecret());
-                editor.putString(Main.PREF_ACCOUNT, name);
-                editor.commit();
-                Toast.makeText(mContext, R.string.success, Toast.LENGTH_LONG).show();
-            } catch (TwitterException e) {
-                Log.d(LOG_TAG, "Cannot get AccessToken: " + e.getMessage());
-            } catch (Exception e) {
-                Log.d(LOG_TAG, "Cannot get AccessToken: " + e.getMessage());
+
+    class NetworkRequest extends AsyncTask<String, String, Boolean> {
+        public NetworkRequest() {
+            mProgressDialog = new ProgressDialog(TwitterLogin.this);
+            mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        }
+
+        protected void onProgressUpdate(String... progress) {
+            mProgressDialog.setMessage(progress[0]);
+        }
+
+        protected void onPreExecute() {
+            super.onPreExecute();
+            mProgressDialog.setIndeterminate(true);
+            mProgressDialog.setTitle(R.string.dialog_title);
+            mProgressDialog.show();
+        }
+
+        protected void onPostExecute(Boolean result) {
+            super.onPostExecute(result);
+            if(mProgressDialog != null &&
+                mProgressDialog.isShowing()) {
+                mProgressDialog.dismiss();
+                mProgressDialog = null;
             }
+            Toast.makeText(mContext,
+                    result ? R.string.success : R.string.fail,
+                    Toast.LENGTH_LONG).show();
+            setResult(Activity.RESULT_OK, mIntent);
+            finish();
+        }
+
+        @Override
+        protected Boolean doInBackground(String... params) {
+            publishProgress(getString(R.string.dialog_request_token_message));
+            return verifyCode(params[0]);
         }
     }
-    */
 
-    private void verifyCode(String pin) {
+    private Boolean verifyCode(String pin) {
         try {
             mAccessToken = mTwitter.getOAuthAccessToken(mRequestToken, pin);
             mTwitter.setOAuthAccessToken(mAccessToken);
@@ -200,15 +216,12 @@ public class TwitterLogin extends Activity {
             editor.putString(Main.PREF_ACCESS_TOKEN_SECRET, mAccessToken.getTokenSecret());
             editor.putString(Main.PREF_ACCOUNT, name);
             editor.commit();
-            Toast.makeText(mContext, R.string.success, Toast.LENGTH_LONG).show();
+            return true;
         } catch (TwitterException e) {
-            Log.d(LOG_TAG, "Cannot get AccessToken: " + e.getMessage());
-            Toast.makeText(mContext, R.string.fail, Toast.LENGTH_LONG).show();
+            Log.e(LOG_TAG, "Cannot get AccessToken Twitter: " + e.getMessage());
         } catch (Exception e) {
-            Log.d(LOG_TAG, "Cannot get AccessToken: " + e.getMessage());
-            Toast.makeText(mContext, R.string.fail, Toast.LENGTH_LONG).show();
+            Log.e(LOG_TAG, "Cannot get AccessToken: " + e.getMessage());
         }
-        setResult(Activity.RESULT_OK, mIntent);
-        finish();
+        return false;
     }
 }

@@ -4,7 +4,6 @@ import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 import twitter4j.auth.AccessToken;
-import android.R.integer;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -80,7 +79,7 @@ public class Main extends Activity implements
         private int width, height;
         private int offResourceId, onResourceId;
         private ImageView imageView;
-        
+
         ButtonInfo(int offResourceId, int onResourceId, int x, int y, int width, int height, ImageView imageView) {
             this.x = x;
             this.y = y;
@@ -110,12 +109,12 @@ public class Main extends Activity implements
 
     class AnimationTerminator extends TimerTask {
         private static final int DEFAULT_IMAGE_ID = 0;
-        
+
         private AnimationDrawable animation;
         private ImageView imageView;
         private int imageId;
         private boolean disableOnTerminate;
-        
+
         AnimationTerminator(AnimationDrawable animation, ImageView imageView, int imageId) {
             this.animation = animation;
             this.imageView = imageView;
@@ -191,7 +190,7 @@ public class Main extends Activity implements
         mFurohaButton = (ImageView)findViewById(R.id.button_furoha);
         mFuroaButton = (ImageView)findViewById(R.id.button_furoa);
         mParticle = (ImageView)findViewById(R.id.particle);
-        
+
         WindowManager wm = (WindowManager)getSystemService(WINDOW_SERVICE);
         Display disp = wm.getDefaultDisplay();
         DisplayMetrics metrics = new DisplayMetrics();
@@ -216,6 +215,7 @@ public class Main extends Activity implements
             titleBarHeight = 24;
             break;
         }
+
         Log.d(LOG_TAG, "titleBarHeight = " + titleBarHeight);
         int w, h;
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB_MR2) {
@@ -225,7 +225,7 @@ public class Main extends Activity implements
             Point dispSize = new Point();
             disp.getSize(dispSize);
             w = dispSize.x;
-            h = dispSize.y - titleBarHeight;
+            h = dispSize.y - titleBarHeight - 50;
         }
         Log.d(LOG_TAG, "w: " + w + ", h: " + h);
         mScaleX = (float)w / (float)438;
@@ -322,7 +322,7 @@ public class Main extends Activity implements
         }
 
         mParticle.setVisibility(View.GONE);
-        
+
         mTwitter = new TwitterFactory().getInstance();
         mTwitter.setOAuthConsumer(CONSUMER_KEY, CONSUMER_SEC);
         isAuthed();
@@ -465,7 +465,7 @@ public class Main extends Activity implements
                     editor.putString(PREF_ACCOUNT, mScreenName);
                     editor.commit();
                 } catch (Exception e) {
-                    Log.d(LOG_TAG, "Error: " + e.getMessage());
+                    Log.e(LOG_TAG, "Error: " + e.getMessage());
                 }
             }
             this.setTitle(String.format("%s - %s", getString(R.string.app_name), mScreenName));
