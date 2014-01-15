@@ -200,8 +200,10 @@ public class Main extends Activity implements
         switch (metrics.densityDpi) {
         case 480: // DisplayMetrics.DENSITY_XXHIGH: (API Level 16)
             titleBarHeight = 96;
+            break;
         case 320: // DisplayMetrics.DENSITY_XHIGH: (API Level 9)
             titleBarHeight = 64;
+            break;
         case DisplayMetrics.DENSITY_HIGH:
             titleBarHeight = 48;
             break;
